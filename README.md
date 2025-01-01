@@ -1,8 +1,9 @@
 # instaviv-user-authentication
 
-## Create Virual Environment
-python3 -m venv .venv
-source .venv/bin/activate
-python3 -m pip install --upgrade pip
-pip install "fastapi[standard]"
-deactivate
+# Steps to Run
+Docker Compose is required to run the service
+https://docs.docker.com/compose/install/
+
+1. sudo docker-compose build
+2. sudo docker-compose up
+3. localhost:8001/docs

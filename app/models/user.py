@@ -14,3 +14,13 @@ class User(Base):
 class UserReq(BaseModel):
     email: EmailStr
     password: str
+
+class Token(BaseModel):
+    access_token: str
+    access_token_expires: float
+    refresh_token: str
+    refresh_token_expires: float
+    token_type: str = "bearer"
+
+class TokenPayload(BaseModel):
+    sub: str | None = None

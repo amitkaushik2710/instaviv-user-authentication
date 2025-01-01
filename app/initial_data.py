@@ -1,15 +1,14 @@
 import logging
 from sqlmodel import Session, select
 from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
-from sqlalchemy import Engine
+from sqlalchemy import Engine, text
 from app.core.db import postgres_engine, userdb_engine
-from sqlalchemy import text
 from app.core.config import settings
 from app.models.user import Base
 
 logger = logging.getLogger(__name__)
 
-max_tries = 60 * 5  # 5 minutes
+max_tries = 60 * 5 
 wait_seconds = 1
 
 @retry(
@@ -21,7 +20,6 @@ wait_seconds = 1
 def initDb(db_engine: Engine) -> None:
     try:
         with Session(db_engine) as session:
-            # Try to create session to check if DB is awake
             session.exec(select(1))
             logger.info("Bootup initDb : db awake")
     except Exception as e:
@@ -29,9 +27,6 @@ def initDb(db_engine: Engine) -> None:
         raise e
     
 def create_user_database_if_not_exists():
-    """
-    Connect to `postgres` database and create `userdb` if it does not exist.
-    """
     with postgres_engine.connect() as connection:
         connection = connection.execution_options(isolation_level="AUTOCOMMIT")
         result = connection.execute(
@@ -44,13 +39,10 @@ def create_user_database_if_not_exists():
             logger.info(f"Database '{settings.USER_DB}' created.")
         else:
             logger.info(f"Database '{settings.USER_DB}' already exists.")
-            # Create all tables
             logger.info(f"Database '{settings.USER_DB}' creating user tables.")
             Base.metadata.create_all(bind=userdb_engine)
             logger.info(f"Database '{settings.USER_DB}' created user tables.")
     
-# Service BootUp 
-# DB Creation and Table Migrations
 def service_boot_up():
     initDb(postgres_engine)
     create_user_database_if_not_exists()

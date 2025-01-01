@@ -8,6 +8,11 @@ def get_user_by_email(*, session: Session, email: str) -> User | None:
     session_user = session.exec(statement).first()
     return session_user
 
+def get_user_by_id(*, session: Session, id: str) -> User | None:
+    statement = select(User).where(User.id == id)
+    session_user = session.exec(statement).first()
+    return session_user
+
 def create_user(*, session: Session, user: UserReq) -> User:
     id = uuid.uuid4()
     password = get_password_hash(user.password)
@@ -16,3 +21,11 @@ def create_user(*, session: Session, user: UserReq) -> User:
     session.commit()
     session.refresh(db_obj)
     return db_obj
+
+def authenticate(*, session: Session, email: str, password: str) -> User | None:
+    db_user = get_user_by_email(session=session, email=email)
+    if not db_user:
+        return None
+    if not verify_password(password, db_user.password):
+        return None
+    return db_user

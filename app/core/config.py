@@ -2,17 +2,18 @@ from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import (
     PostgresDsn,
-    computed_field,
 )
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        # Use top level .env file (one level above ./backend/)
         env_file="../.env",
         env_ignore_empty=True,
     )
     API_V1_STR: str = "/api/v1"
 
+    ACCESS_TOKEN_EXPIRE_MINUTES: int 
+    REFRESH_TOKEN_EXPIRE_WEEKS: int
+    SECRET_KEY: str 
     PROJECT_NAME: str
     POSTGRES_SERVER: str
     POSTGRES_PORT: int = 5432
@@ -21,7 +22,6 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = ""
     USER_DB: str = ""
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_POSTGRES_DATABASE_URI(self) -> PostgresDsn:
         return MultiHostUrl.build(
@@ -44,4 +44,4 @@ class Settings(BaseSettings):
             path=self.USER_DB,
         )
 
-settings = Settings()  # type: ignore
+settings = Settings()

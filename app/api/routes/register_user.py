@@ -1,35 +1,43 @@
-from fastapi import APIRouter, HTTPException
+import logging
+logger = logging.getLogger(__name__)
+
+import app.crud as crud
+from app.models.user import UserReq
 from app.api.deps import (
     SessionDep,
 )
-import app.crud as crud
-from app.models.user import UserReq
-import logging
 
-logger = logging.getLogger(__name__)
-
+from fastapi import APIRouter, HTTPException
 router = APIRouter(prefix="/users", tags=["users"])
 
 @router.post("/signup")
-def register_user(session: SessionDep, user: UserReq) -> None:
+def register_user(session: SessionDep, req: UserReq):
     logger.info("register_user: API Called")
+    logger.info(f"register_user: request user : {req}")
 
-    logger.info(f"register_user: request user : {user}")
-
-    if not user.email or not user.password:
+    if not req.email or not req.password:
+        logger.error(f"register_user: got empty username or password {req}")
         raise HTTPException(
             status_code=400,
-            detail="user email or password is empty",
+            detail={
+                "status_code": 400,
+                "message": "Email or password is empty",
+            },
         )
 
-    userdb = crud.get_user_by_email(session=session, email=user.email)
-    logger.info(f"register_user: db user : {userdb}")
+    userdb = crud.get_user_by_email(session=session, email=req.email)
+    logger.info(f"register_user: existing user in the db : {userdb}")
     if userdb:
+        logger.error(f"register_user: failed to create new user. user already exist with email {req}")
         raise HTTPException(
             status_code=400,
-            detail="The user with this email already exists in the system",
+            detail={
+                "status_code": 400,
+                "message": "user already exist with email",
+            },
         )
     
-    user = crud.create_user(session=session, user=user)
+    user = crud.create_user(session=session, user=req)
+    logger.info(f"register_user: new user created in db : {user}")
 
     return {"status" : 200 , "message" : "user created successfully"}
