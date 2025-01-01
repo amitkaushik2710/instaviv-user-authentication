@@ -37,11 +37,12 @@ def create_user_database_if_not_exists():
         if not result:
             connection.execute(text(f"CREATE DATABASE {settings.USER_DB}"))
             logger.info(f"Database '{settings.USER_DB}' created.")
-        else:
-            logger.info(f"Database '{settings.USER_DB}' already exists.")
             logger.info(f"Database '{settings.USER_DB}' creating user tables.")
             Base.metadata.create_all(bind=userdb_engine)
             logger.info(f"Database '{settings.USER_DB}' created user tables.")
+        else:
+            logger.info(f"Database '{settings.USER_DB}' already exists.")
+            
     
 def service_boot_up():
     initDb(postgres_engine)
